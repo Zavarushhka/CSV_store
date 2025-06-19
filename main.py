@@ -32,8 +32,17 @@ try:
         raise FileNotFoundError(f"Файл {args.file} не найден")
         
     processor = CSVProcessor(args.file)
-        
-    if args.where:
+    
+    if args.where and args.aggregate:
+        column_filter, operator, value = parse_filter_expr(args.where)
+        filtered_data = processor.filter_data(column_filter, operator, value)
+
+        column_agg, operation = parse_aggregate_expr(args.aggregate)
+        result = processor.aggregate_filtered_data(filtered_data, column_agg, operation)
+
+        print(tabulate([result], headers="keys", tablefmt="grid"))
+
+    elif args.where:
         column, operator, value = parse_filter_expr(args.where)
         filtered_data = processor.filter_data(column, operator, value)
         print(tabulate(filtered_data, headers="keys", tablefmt="grid"))

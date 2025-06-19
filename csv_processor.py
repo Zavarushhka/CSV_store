@@ -1,6 +1,16 @@
 import csv
 from typing import List, Dict, Union
 
+'''
+Модуль для обработки CSV файлов с возможностью фильтрации и агрегации данных.
+
+Основной класс:
+    CSVProcessor - предоставляет функционал для:
+        1. Загрузки CSV файла в память
+        2. Фильтрации строк по условиям
+        3. Агрегации данных по колонкам
+'''
+
 class CSVProcessor:
     def __init__(self, file_path: str):
         self.file_path = file_path
@@ -85,5 +95,41 @@ class CSVProcessor:
         return {
             'column': column,
             'operation': operation,
+            'result': operations[operation](numeric_values)
+        }
+    
+    def aggregate_filtered_data(
+            self,
+            filtered_data: List[Dict[str, Union[str, float]]],
+            column: str,
+            operation: str
+    ) -> Dict[str, Union[str, float]]:
+        if column not in self.headers:
+            raise ValueError(f"Колонка '{column}' не найдена")
+        
+        numeric_values = []
+        for row in filtered_data:
+            try:
+                numeric_value = float(row[column])
+                numeric_values.append(numeric_value)
+            except ValueError:
+                continue
+        
+        if not numeric_values:
+            raise ValueError(f"Нет числовых значений в колонке '{column}'")
+        
+        operations = {
+            'avg': lambda x: sum(x) / len(x),
+            'min': min,
+            'max': max,
+            'sum': sum,
+            'count': len
+        }
+
+        if operation not in operations:
+            raise ValueError(f"Неподдерживаемая операция: '{operation}'")
+        
+        return {
+            'where': f"{column}={operation}",
             'result': operations[operation](numeric_values)
         }
